@@ -1,1 +1,366 @@
 
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>El Regalo Perfecto — POS + Inventario</title>
+  <style>
+    :root{
+      --bg:#050817;--p:rgba(255,255,255,.06);--b:rgba(255,255,255,.10);
+      --t:rgba(255,255,255,.92);--m:rgba(255,255,255,.62);--m2:rgba(255,255,255,.45);
+      --ok:#34d399;--w:#fbbf24;--bad:#fb7185;--info:#38bdf8;
+      --r:18px;--shadow:0 18px 60px rgba(0,0,0,.55)
+    }
+    *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--t);background:
+      radial-gradient(900px 500px at 15% 10%, rgba(255,255,255,.09), transparent 55%),
+      radial-gradient(700px 500px at 85% 30%, rgba(56,189,248,.16), transparent 55%),
+      radial-gradient(700px 600px at 60% 95%, rgba(251,113,133,.14), transparent 55%),
+      linear-gradient(to bottom, rgba(2,6,23,.25), rgba(2,6,23,.95));}
+    .wrap{max-width:1200px;margin:0 auto;padding:18px 14px 36px}
+    .head{display:flex;gap:12px;justify-content:space-between;flex-wrap:wrap;align-items:flex-start}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:18px;display:grid;place-items:center;
+      background:rgba(255,255,255,.10);border:1px solid var(--b);box-shadow:var(--shadow)}
+    h1{margin:0;font-size:20px;font-weight:900;letter-spacing:-.02em}
+    .sub{margin:4px 0 0;font-size:13px;color:var(--m)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{border:1px solid var(--b);background:rgba(255,255,255,.05);color:var(--t);
+      padding:10px 12px;border-radius:14px;font-weight:800;font-size:13px;cursor:pointer;transition:.15s}
+    .btn:hover{background:rgba(255,255,255,.09);transform:translateY(-1px)}
+    .btn:active{transform:none}
+    .btn.primary{background:rgba(255,255,255,.92);color:#0b1020}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;
+      border:1px solid var(--b);background:rgba(255,255,255,.06);font-size:12px;font-weight:900}
+    .pill.ok{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.18);color:var(--ok)}
+    .pill.w{background:rgba(251,191,36,.13);border-color:rgba(251,191,36,.18);color:var(--w)}
+    .pill.bad{background:rgba(251,113,133,.13);border-color:rgba(251,113,133,.18);color:var(--bad)}
+    .tabs{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px;
+      border-radius:18px;border:1px solid var(--b);background:rgba(255,255,255,.06);backdrop-filter:blur(10px)}
+    .tab{border:1px solid transparent;background:transparent;color:var(--t);border-radius:14px;
+      padding:10px 12px;text-align:left;cursor:pointer;transition:.15s}
+    .tab:hover{background:rgba(255,255,255,.06)}
+    .tab.on{background:rgba(255,255,255,.92);color:#0b1020}
+    .t1{font-weight:900;font-size:13px}.t2{font-size:12px;opacity:.75}
+    .row{margin-top:14px;display:grid;gap:14px}
+    .row.pos,.row.rep{grid-template-columns:2fr 1fr}
+    @media (max-width:980px){.row.pos,.row.rep{grid-template-columns:1fr}}
+    .card{background:var(--p);border:1px solid var(--b);border-radius:22px;box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);overflow:hidden}
+    .ch{padding:14px 16px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start;
+      border-bottom:1px solid var(--b)}
+    .ch h2{margin:0;font-size:16px;font-weight:900}.ch p{margin:6px 0 0;font-size:13px;color:var(--m)}
+    .cb{padding:16px}
+    input,select{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--b);
+      background:rgba(255,255,255,.05);color:var(--t);outline:none;font-size:13px}
+    input::placeholder{color:rgba(255,255,255,.40)}
+    .search{display:flex;gap:8px;align-items:center;min-width:260px}
+    .grid{display:grid;gap:10px;grid-template-columns:repeat(3,1fr)}
+    @media (max-width:980px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:560px){.grid{grid-template-columns:1fr}.search{min-width:100%}}
+    .prod{border-radius:18px;border:1px solid var(--b);background:rgba(255,255,255,.05);padding:12px;
+      cursor:pointer;transition:.15s;text-align:left}
+    .prod:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
+    .prod:active{transform:none}
+    .prod:disabled{opacity:.55;cursor:not-allowed;transform:none}
+    .top{display:flex;justify-content:space-between;gap:10px}
+    .name{margin:0;font-weight:900;font-size:13px;line-height:1.25}
+    .meta{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;color:var(--m);font-size:12px}
+    .tag{padding:4px 8px;border-radius:10px;border:1px solid var(--b);background:rgba(255,255,255,.05);
+      color:var(--t);font-weight:900;font-size:11px}
+    .mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+    .bot{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+    .line{border:1px solid var(--b);background:rgba(255,255,255,.05);border-radius:18px;padding:12px;display:grid;gap:10px}
+    .lt{display:flex;justify-content:space-between;gap:10px}
+    .qty{display:flex;gap:8px;align-items:center}
+    .ib{width:34px;height:34px;border-radius:12px;border:1px solid var(--b);background:rgba(255,255,255,.05);
+      cursor:pointer;display:grid;place-items:center;transition:.15s}
+    .ib:hover{background:rgba(255,255,255,.09)}
+    .tot{border:1px solid var(--b);background:rgba(255,255,255,.05);border-radius:18px;padding:12px}
+    .tr{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+    .big{font-size:18px;font-weight:900}
+    .pay{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .pb{border-radius:18px;padding:10px 12px;border:1px solid var(--b);background:rgba(255,255,255,.05);
+      cursor:pointer;font-weight:900;transition:.15s}
+    .pb.on{background:rgba(255,255,255,.92);color:#0b1020}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-top:1px solid var(--b);font-size:13px;text-align:left}
+    thead th{border-top:none;background:rgba(255,255,255,.05);color:var(--m);font-size:12px;font-weight:900}
+    .tw{border:1px solid var(--b);border-radius:18px;overflow:auto;background:rgba(255,255,255,.03)}
+    .hide{display:none}
+    .sep{height:1px;background:var(--b);margin:12px 0}
+    /* modal */
+    .modal{position:fixed;inset:0;display:none;place-items:center;padding:16px;z-index:50}
+    .modal.on{display:grid}
+    .back{position:absolute;inset:0;background:rgba(0,0,0,.65)}
+    .sheet{position:relative;width:min(760px,100%);border-radius:22px;border:1px solid var(--b);
+      background:rgba(5,8,23,.82);box-shadow:0 30px 90px rgba(0,0,0,.65);backdrop-filter:blur(14px);overflow:hidden}
+    .sh{padding:14px 16px;display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--b)}
+    .sh h3{margin:0;font-size:16px;font-weight:900}.sh p{margin:6px 0 0;font-size:13px;color:var(--m)}
+    .sb{padding:16px}.sf{padding:16px;border-top:1px solid var(--b);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+    .form{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    .span2{grid-column:span 2}
+    @media (max-width:640px){.form{grid-template-columns:1fr}.span2{grid-column:span 1}}
+    /* toast */
+    .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:min(560px,calc(100% - 32px));
+      display:none;z-index:60}
+    .toast.on{display:block}
+    .tb{border:1px solid var(--b);background:rgba(5,8,23,.82);border-radius:18px;padding:12px 14px;
+      box-shadow:var(--shadow);backdrop-filter:blur(12px);display:flex;gap:10px;align-items:flex-start}
+    .dot{width:10px;height:10px;border-radius:999px;margin-top:4px}
+    .dot.ok{background:var(--ok)}.dot.w{background:var(--w)}.dot.bad{background:var(--bad)}.dot.info{background:var(--info)}
+    .tt{font-weight:900}.tm{font-size:13px;color:var(--m);margin-top:2px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🎁</div>
+      <div>
+        <h1 id="storeName">El regalo perfecto, S.A.</h1>
+        <p class="sub">Prototipo POS + Inventario + Reportes • sin instalaciones complicadas</p>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <span class="pill" id="stockPill">Cargando…</span>
+          <span class="pill info" id="clerkPill">Caja 1</span>
+        </div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="cfgBtn">⚙️ Config</button>
+      <button class="btn" id="invCsvBtn">⬇️ Inventario</button>
+      <button class="btn" id="resetBtn">🔄 Restablecer</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab on" id="tPos"><div><div class="t1">Punto de venta</div><div class="t2">Ventas y cobros</div></div></button>
+    <button class="tab" id="tInv"><div><div class="t1">Inventario</div><div class="t2">Altas, bajas, stock</div></div></button>
+    <button class="tab" id="tRep"><div><div class="t1">Reportes</div><div class="t2">Hoy, rango, ranking</div></div></button>
+  </nav>
+
+  <!-- POS -->
+  <section class="row pos" id="vPos">
+    <div class="card">
+      <div class="ch">
+        <div>
+          <h2>Punto de venta</h2>
+          <p>Selecciona artículos, registra la venta y actualiza stock automáticamente.</p>
+        </div>
+        <div class="search">
+          <input id="posQ" placeholder="Buscar por SKU, nombre o categoría"/>
+          <button class="btn" id="focusBtn" title="Ctrl+K">⌘K</button>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="grid" id="prodGrid"></div>
+        <div id="prodEmpty" class="hide" style="margin-top:14px;text-align:center;color:var(--m)">Sin resultados.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <div>
+          <h2>Carrito</h2>
+          <p>Cobro en efectivo o tarjeta (validaciones incluidas).</p>
+        </div>
+        <span class="pill" id="cartPill">0 artículos</span>
+      </div>
+      <div class="cb">
+        <div id="cartLines" style="display:grid;gap:10px"></div>
+        <div id="cartEmpty" class="tot" style="text-align:center;color:var(--m)">
+          <div style="font-weight:900;margin-bottom:6px">Carrito vacío</div>
+          Agrega productos para registrar una venta.
+          <div style="margin-top:10px;color:var(--m2);font-size:12px">Ctrl+K buscar • Ctrl+Enter cobrar</div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="tot">
+            <div class="tr"><div style="color:var(--m);font-weight:900">Total</div><div class="big mono" id="tot">$0.00</div></div>
+            <div class="tr" style="margin-top:6px;font-size:12px;color:var(--m)"><div>Utilidad</div><div class="mono" id="prof">$0.00</div></div>
+          </div>
+
+          <div class="pay">
+            <button class="pb on" id="payCash">💵 Efectivo</button>
+            <button class="pb" id="payCard">💳 Tarjeta</button>
+          </div>
+
+          <div id="cashBox" style="margin-top:10px">
+            <div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Efectivo recibido</div>
+            <input id="cashGiven" type="number" placeholder="Monto recibido"/>
+            <div style="margin-top:8px;display:flex;justify-content:space-between;color:var(--m);font-size:12px">
+              <div>Cambio</div><div class="mono" id="change">$0.00</div>
+            </div>
+          </div>
+
+          <div id="cardBox" class="hide" style="margin-top:10px">
+            <div class="tot" style="color:var(--m)">Cobro con tarjeta seleccionado.</div>
+          </div>
+
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn" id="clearBtn">Limpiar</button>
+            <button class="btn primary" id="checkoutBtn">✅ Cobrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INVENTARIO -->
+  <section class="row hide" id="vInv">
+    <div class="card">
+      <div class="ch">
+        <div>
+          <h2>Inventario</h2>
+          <p>Regla de baja: desactivar solo si stock=0 y reposición=0.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="invQ" placeholder="Buscar producto" style="min-width:240px"/>
+          <select id="invF" style="min-width:170px">
+            <option value="all">Todos</option><option value="active">Activos</option>
+            <option value="inactive">Inactivos</option><option value="low">Bajo stock</option>
+          </select>
+          <button class="btn" id="newBtn">➕ Nuevo</button>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>SKU</th><th>Producto</th><th>Costo</th><th>Precio</th><th>Stock</th><th>Reorden</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="invBody"></tbody>
+          </table>
+        </div>
+        <div id="invEmpty" class="hide" style="margin-top:14px;text-align:center;color:var(--m)">Sin resultados.</div>
+        <div class="sep"></div>
+        <span class="pill info">📌 RUF-09: baja permitida solo si stock=0 y reposición=0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- REPORTES -->
+  <section class="row rep hide" id="vRep">
+    <div class="card">
+      <div class="ch">
+        <div>
+          <h2>Reportes</h2>
+          <p>Ventas de hoy y por rango (export CSV).</p>
+        </div>
+        <button class="btn" id="rangeCsvBtn">⬇️ Exportar rango</button>
+      </div>
+      <div class="cb">
+        <div class="form">
+          <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Desde</div><input id="from" type="date"/></div>
+          <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Hasta</div><input id="to" type="date"/></div>
+        </div>
+        <div class="sep"></div>
+        <div class="form">
+          <div class="tot"><div style="color:var(--m);font-weight:900;font-size:12px">Ventas</div><div class="big mono" id="rc">0</div></div>
+          <div class="tot"><div style="color:var(--m);font-weight:900;font-size:12px">Artículos</div><div class="big mono" id="ri">0</div></div>
+          <div class="tot"><div style="color:var(--m);font-weight:900;font-size:12px">Ingresos</div><div class="big mono" id="rt">$0.00</div></div>
+          <div class="tot"><div style="color:var(--m);font-weight:900;font-size:12px">Utilidad</div><div class="big mono" id="rp">$0.00</div></div>
+        </div>
+        <div class="sep"></div>
+        <div class="tot">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div>
+              <div style="font-weight:900">Ventas de hoy</div>
+              <div style="color:var(--m2);font-size:12px" id="todayKey">—</div>
+            </div>
+            <button class="btn" id="todayCsvBtn">⬇️ Exportar hoy</button>
+          </div>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="tot"><div style="color:var(--m);font-weight:900;font-size:12px"># ventas</div><div class="big mono" id="tc">0</div></div>
+            <div class="tot"><div style="color:var(--m);font-weight:900;font-size:12px">Total</div><div class="big mono" id="tt">$0.00</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <div><h2>Ranking por utilidad</h2><p>Top/Bottom 5 en el rango.</p></div>
+      </div>
+      <div class="cb">
+        <div style="font-weight:900">📈 Top 5</div><div id="top" style="display:grid;gap:8px;margin-top:10px"></div>
+        <div class="sep"></div>
+        <div style="font-weight:900">📉 Bottom 5</div><div id="bottom" style="display:grid;gap:8px;margin-top:10px"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal" id="modal">
+  <div class="back" id="mClose"></div>
+  <div class="sheet">
+    <div class="sh">
+      <div><h3 id="mTitle">Producto</h3><p>Alta/edición de inventario.</p></div>
+      <button class="btn" id="mX">✖</button>
+    </div>
+    <div class="sb">
+      <div class="form">
+        <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">SKU</div><input id="fSku"/></div>
+        <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Categoría</div><input id="fCat"/></div>
+        <div class="span2"><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Nombre</div><input id="fName"/></div>
+        <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Costo</div><input id="fCost" type="number"/></div>
+        <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Precio</div><input id="fPrice" type="number"/></div>
+        <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Stock</div><input id="fStock" type="number"/></div>
+        <div><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Reorden</div><input id="fReorder" type="number"/></div>
+        <div class="span2" style="display:flex;gap:10px;align-items:center">
+          <input id="fActive" type="checkbox" style="width:auto"/><label style="font-weight:900;font-size:13px">Activo (visible en ventas)</label>
+        </div>
+      </div>
+    </div>
+    <div class="sf">
+      <button class="btn" id="mCancel">Cancelar</button>
+      <button class="btn primary" id="mSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="modal" id="cfg">
+  <div class="back" id="cClose"></div>
+  <div class="sheet">
+    <div class="sh">
+      <div><h3>Configuración</h3><p>Nombre de tienda y terminal.</p></div>
+      <button class="btn" id="cX">✖</button>
+    </div>
+    <div class="sb">
+      <div class="form">
+        <div class="span2"><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Tienda</div><input id="cStore"/></div>
+        <div class="span2"><div style="color:var(--m);font-weight:900;font-size:12px;margin-bottom:6px">Cajero/Terminal</div><input id="cClerk"/></div>
+      </div>
+      <div class="sep"></div>
+      <span class="pill info">Datos guardados localmente (localStorage).</span>
+    </div>
+    <div class="sf">
+      <button class="btn" id="cCancel">Cerrar</button>
+      <button class="btn primary" id="cSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="tb">
+    <div class="dot info" id="dot"></div>
+    <div style="flex:1">
+      <div class="tt" id="tTitle">Título</div>
+      <div class="tm" id="tMsg">Mensaje</div>
+    </div>
+    <button class="btn" id="tX">✖</button>
+  </div>
+</div>
+
+<script>
+  // ====== Estado + storage ======
+  const LS_P="rp_p_v1", LS_S="rp_s_v1", LS_C="rp_c_v1";
+  const demo=[
+    {id:"sku-001",sku:"SKU-001",name:"Taza personalizada",cat:"Hogar",cost:55,price:149,stock:18,re:5,act:true},
+    {id:"sku-002",sku:"SKU-002",name:"Caja de regalo premium",cat:"Empaque",cost:30,price:89,stock:40,re:10,act:true},
+    {id:"sku-003",sku:"SKU-003",name:"Peluche mediano",cat:"Peluches",cost:90,price:219,stock:9,re:6,act:true},
+    {id:"sku
